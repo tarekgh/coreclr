@@ -11,10 +11,12 @@
 const uint32_t AllowUnassigned = 0x1;
 const uint32_t UseStd3AsciiRules = 0x2;
 
-uint32_t GetOptions(uint32_t flags)
+uint32_t GetOptions(uint32_t flags, uint32_t defaultFlags)
 {
-    // Using Nontransitional to Unicode and Check ContextJ to match the current behavior of .NET on Windows
-    uint32_t options = UIDNA_NONTRANSITIONAL_TO_UNICODE | UIDNA_CHECK_CONTEXTJ;
+    // defaultFlags will be UIDNA_NONTRANSITIONAL_TO_ASCII if we are calling ToAscii 
+    // and will be UIDNA_NONTRANSITIONAL_TO_UNICODE if we are calling ToUnicode.
+    // Using Nontransitional flag and Check ContextJ to match the current behavior of .NET on Windows
+    uint32_t options = defaultFlags | UIDNA_CHECK_CONTEXTJ;
 
     if ((flags & AllowUnassigned) == AllowUnassigned)
     {
@@ -42,11 +44,11 @@ Return values:
 */
 int32_t GlobalizationNative_ToAscii(
     uint32_t flags, const UChar* lpSrc, int32_t cwSrcLength, UChar* lpDst, int32_t cwDstLength)
-{
+{ 
     UErrorCode err = U_ZERO_ERROR;
     UIDNAInfo info = UIDNA_INFO_INITIALIZER;
 
-    UIDNA* pIdna = uidna_openUTS46(GetOptions(flags), &err);
+    UIDNA* pIdna = uidna_openUTS46(GetOptions(flags, UIDNA_NONTRANSITIONAL_TO_ASCII), &err);
 
     int32_t asciiStrLen = uidna_nameToASCII(pIdna, lpSrc, cwSrcLength, lpDst, cwDstLength, &info, &err);
 
@@ -75,7 +77,7 @@ int32_t GlobalizationNative_ToUnicode(
     UErrorCode err = U_ZERO_ERROR;
     UIDNAInfo info = UIDNA_INFO_INITIALIZER;
 
-    UIDNA* pIdna = uidna_openUTS46(GetOptions(flags), &err);
+    UIDNA* pIdna = uidna_openUTS46(GetOptions(flags, UIDNA_NONTRANSITIONAL_TO_UNICODE), &err);
 
     int32_t unicodeStrLen = uidna_nameToUnicode(pIdna, lpSrc, cwSrcLength, lpDst, cwDstLength, &info, &err);
 
